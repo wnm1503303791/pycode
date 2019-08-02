@@ -2,7 +2,7 @@
 """
 Created on Fri Aug  2 15:30:19 2019
 
-@author: Administrator
+@author: tuzhuo
 """
 
 cache={}
@@ -31,3 +31,4 @@ def fib(n):
         # return res
 
 print(fib(10),len(cache))
+print(cache)
