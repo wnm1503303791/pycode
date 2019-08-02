@@ -32,3 +32,6 @@ def fib(n):
 
 print(fib(10),len(cache))
 print(cache)
+
+fib2=fib
+print(fib2(10))
