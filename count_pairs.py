@@ -16,4 +16,4 @@ def count_pairs(dna, pair):
 				
 	return counter
 	
-print(count_pairs("ACTGCTATCCATT", "CAT"))
+print(count_pairs("ACGTTACGGAACG", "ACG"))
