@@ -4,13 +4,13 @@ class person:
 	def __init__(self,name,id):
 		self.name=name
 		self.id=id
-		num+=1;
+		person.num+=1
 
 	def setid(self,id):
 		self.id=id;
 	
 	def getnum(self):
-		return num
+		return person.num
 
 	def showinfo(self):
 		print("name:",self.name,"id:",self.id)
