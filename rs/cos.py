@@ -16,6 +16,7 @@ def readfile(path):
 	for data in f.readlines():
 		data=data.strip("\n")
 		fla=data.split(" ")
+		fla=fla[1:]
 		if flag:
 			fla=[float(x) for x in fla]	#语法糖，将新读入的数据行内的所有元素从字符串转换为float
 			matrix=np.array(fla)
@@ -37,3 +38,7 @@ def dealMatrix(matrix):
 
 
 data=readfile("aa_at_pre4_sort.txt")
+data=data.transpose()
+print(data[0],data[0]*data[0])
+#op7=np.dot(vector1,vector2)/(np.linalg.norm(vector1)*(np.linalg.norm(vector2)))
+print(np.dot(data[0],data[0])/(np.linalg.norm(data[0])*(np.linalg.norm(data[0]))))
