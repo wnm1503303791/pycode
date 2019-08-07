@@ -42,3 +42,24 @@ data=data.transpose()
 print(data[0],data[0]*data[0])
 #op7=np.dot(vector1,vector2)/(np.linalg.norm(vector1)*(np.linalg.norm(vector2)))
 print(np.dot(data[0],data[0])/(np.linalg.norm(data[0])*(np.linalg.norm(data[0]))))
+
+fo = open("result.txt", "w")
+
+counta=countb=1
+for a in data:
+	for b in data:
+		cos=(np.dot(a,b)/(np.linalg.norm(a)*(np.linalg.norm(b))))
+		if cos<0.9 or counta==countb:
+			countb+=1
+			continue
+		s=str(counta)
+		s+=" "
+		s+=str(countb)
+		s+=" "
+		s+=str(cos)
+		s+="\n"
+		fo.write(s)
+		countb+=1
+		print(counta,countb)
+	counta+=1
+	countb=1
