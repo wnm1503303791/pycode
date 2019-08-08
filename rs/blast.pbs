@@ -1,0 +1,9 @@
+#PBS -N python_cos_work
+#PBS -l nodes=1:ppn=2
+#PBS -l mem=2G
+#PBS -l walltime=7200:00:00
+#PBS -q batch 
+#PBS -V  
+
+cd /home/tuzhuo/code/git/pycode/rs
+python cos.py
