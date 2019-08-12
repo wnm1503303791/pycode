@@ -1,4 +1,6 @@
-N = 1000000
+import tensorflow as tf
+
+N = 10000
 dna = 'A'*N
 def count_v6(dna, base):
     m = []   # matches for base in dna: m[i]=True if dna[i]==base
