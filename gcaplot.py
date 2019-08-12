@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d
-n = 10000  # 做1000*1000的点阵
+n = 1000 # 做1000*1000的点阵
 
 # 用meshgrid生成一个二维数组
 x, y = np.meshgrid(np.linspace(-3, 3, n), np.linspace(-3, 3, n))
