@@ -16,7 +16,7 @@ def test_onePicture(path):
         name_list = read_name_list('data')
         print(name_list[picType],prob)
     else:
-        print(" Don't know this person")
+        print("Don't know this person")
 
 #读取文件夹下子文件夹中所有图片进行识别
 def test_onBatch(path):
@@ -39,7 +39,8 @@ if __name__ == '__main__':
     test_onePicture('ltt.jpg')
     test_onePicture('czq.jpg')
     test_onePicture('tz.jpg')
-    #2 3 1
+    test_onePicture('4.pgm')
+    #2 3 1 4
 
 
 

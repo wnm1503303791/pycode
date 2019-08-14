@@ -65,7 +65,7 @@ class Model(object):
             metrics=['accuracy'])
 
         #epochs、batch_size为可调的参数，epochs为训练多少轮、batch_size为每次训练多少个样本
-        self.model.fit(self.dataset.X_train,self.dataset.Y_train,epochs=7,batch_size=20)
+        self.model.fit(self.dataset.X_train,self.dataset.Y_train,epochs=5,batch_size=20)
 
     def evaluate_model(self):
         print('\nTesting---------------')

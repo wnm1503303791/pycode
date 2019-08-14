@@ -38,8 +38,8 @@ def endwith(s,*endstring):
 
 if __name__ == '__main__':
 
-  #result = readAllImg("data",'.pgm')
-  result = readAllImg("data",'.jpg')
+  result = readAllImg("data",'.pgm')
+  #result = readAllImg("data",'.jpg')
   print (result[0])
   # cv2.namedWindow("Image")
   # cv2.imshow("Image", result[1])
