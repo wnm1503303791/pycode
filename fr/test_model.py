@@ -41,6 +41,3 @@ if __name__ == '__main__':
     test_onePicture('tz.jpg')
     test_onePicture('4.pgm')
     #2 3 1 4
-
-
-
