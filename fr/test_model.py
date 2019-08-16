@@ -39,5 +39,6 @@ if __name__ == '__main__':
     test_onePicture('ltt.jpg')
     test_onePicture('czq.jpg')
     test_onePicture('tz.jpg')
-    test_onePicture('4.pgm')
-    #2 3 1 4
+    test_onePicture('5.pgm')
+	test_onePicture('7.pgm')
+    #2 3 1 5 7
