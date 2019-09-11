@@ -6,5 +6,5 @@
 #########################################################################
 #!/bin/bash
 git add -A :/
-git commit -m "add jp files"
+git commit -m "$1"
 git push origin master
