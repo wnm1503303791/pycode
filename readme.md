@@ -7,8 +7,8 @@ author:tz@croplab,HZAU
 used to learn python/machine learning/deep learning
 
 ## 现有库
-	+data
-	+fr->人脸识别
-	+jupyter
-	+nn->神经网络
-	+rs->推荐系统
+1.data
+2.fr->人脸识别
+3.jupyter
+4.nn->神经网络
+5.rs->推荐系统
