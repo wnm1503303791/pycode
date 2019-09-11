@@ -12,3 +12,4 @@ used to learn python/machine learning/deep learning
 	+ jupyter
 	+ nn->神经网络
 	+ rs->推荐系统
+	+ others->其余类别代码
