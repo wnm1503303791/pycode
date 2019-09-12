@@ -1,8 +1,8 @@
 # python练习代码库
 
-author:tz@croplab,HZAU
+first initiated@2019/8/2
 
-## first initiated@2019/8/2
+## author:tz@croplab,HZAU
 
 used to learn python/machine learning/deep learning
 
