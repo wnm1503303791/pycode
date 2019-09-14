@@ -1,10 +1,6 @@
-#########################################################################
-# File Name: run.sh
-# Author: tuzhuo
-# mail: xmb028@163.com
-# Created Time: 2019年09月12日 星期四 15时59分03秒
-#########################################################################
-#!/bin/bash
 
-source activate tensorflow_env1
-python neural_style.py --content examples/tz.jpg --styles examples/1-style.jpg --output r/r-tz.jpg
+source activate tensorflow-gpu1
+
+CUDA_VISIBLE_DEVICES=1 python neural_style.py --content examples/concert.jpg --styles s/starry_night_google.jpg --output r2/concert1.jpg
+CUDA_VISIBLE_DEVICES=1 python neural_style.py --content examples/concert.jpg --styles s/the_scream.jpg --output r2/concert2.jpg
+CUDA_VISIBLE_DEVICES=1 python neural_style.py --content examples/concert.jpg --styles s/woman-with-hat-matisse.jpg --output r2/concert3.jpg
