@@ -1,6 +1,6 @@
 # python练习代码库
 
-![logopic](logo.jpg)
+<img src="logo.jpg" width="260">
 
 first initiated@2019/8/2
 
