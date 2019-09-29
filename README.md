@@ -1,5 +1,7 @@
 # python练习代码库
 
+<img src="logo.jpg" width="260">
+
 first initiated@2019/8/2
 
 ## author:tz@croplab,HZAU
@@ -7,7 +9,7 @@ first initiated@2019/8/2
 used to learn python/machine learning/deep learning
 
 ## 现有库
-	
+
 1. data
 2. fr->人脸识别
 3. jupyter
