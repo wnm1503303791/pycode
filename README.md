@@ -17,4 +17,4 @@ used to learn python/machine learning/deep learning
 5. rs->推荐系统
 6. others->其余类别代码
 7. neural-style-tz->基于卷积神经网络的图片风格转换(需使用GPU进行运算)
-8. Keras-GAN->基于Keras的对抗生成网络应用
+8. Keras-GAN->基于Keras的生成对抗网络应用
