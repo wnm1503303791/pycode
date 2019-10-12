@@ -1,0 +1,19 @@
+{'batch_size': 4, 'batch_buffer': 4096, 'link': 'softplus', 'loss': 'poisson', 'optimizer': 'adam', 'adam_beta1': 0.97, 'adam_beta2': 0.98, 'learning_rate': 0.002, 'num_targets': 3, 'target_pool': 128, 'seq_length': 131072, 'target_length': 1024, 'cnn_dropout': 0.1, 'cnn_filter_sizes': [20, 7, 7, 7, 3, 3, 3, 3, 3, 3, 3, 1], 'cnn_filters': [128, 128, 192, 256, 256, 32, 32, 32, 32, 32, 32, 384], 'cnn_pool': [2, 4, 4, 4, 1, 0, 0, 0, 0, 0, 0, 0], 'cnn_dilation': [1, 1, 1, 1, 1, 2, 4, 8, 16, 32, 64, 1], 'cnn_dense': [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0]}
+Targets pooled by 128 to length 1024
+Convolution w/ 3 384x1 filters to final targets
+Computing gene predictions. Done in 552s.
+Computing correlations. Done in 1s.
+Printing predictions. Done in 2s.
+0       0.611    0.745    0.654    0.679  CNhs11760 aorta
+1       0.589    0.734    0.622    0.607  CNhs12843 artery
+2       0.590    0.747    0.636    0.733  CNhs12856 pulmonic_valve
+ENSG00000277631.4_1   2.906  1.576     0                 aorta
+ENSG00000227917.2_1   0.000  0.138     0                 aorta
+ENSG00000231808.2_1   0.762  0.844     0                 aorta
+ENSG00000170122.5_1   0.000  0.186     0                 aorta
+ENSG00000172785.18_2  5.128  4.202     0                 aorta
+ENSG00000183784.6_1   0.068  0.114     0                 aorta
+ENSG00000235880.1_1   3.355  0.115     0                 aorta
+ENSG00000224836.1_1   0.000  0.070     0                 aorta
+ENSG00000236594.2_1   0.000  0.035     0                 aorta
+ENSG00000225893.1_1   1.054  0.534     0                 aorta
