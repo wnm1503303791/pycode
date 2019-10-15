@@ -3,6 +3,7 @@ import time
 import pdb
 import ipdb
 import collections
+import random
 
 import h5py
 import numpy as np
@@ -64,7 +65,50 @@ FLAGS = tf.app.flags.FLAGS
 
 
 
+#ops.py
+def reverse_complement_transform(data_ops):
+  """Reverse complement of batched onehot seq and corresponding label and na."""
 
+  # initialize reverse complemented data_ops
+  data_ops_rc = {}
+
+  # extract sequence from dict
+  seq = data_ops['sequence']
+
+  # check rank
+  rank = seq.shape.ndims
+  if rank != 3:
+    raise ValueError("input seq must be rank 3.")
+
+  # reverse complement sequence
+  seq_rc = tf.gather(seq, [3, 2, 1, 0], axis=-1)
+  seq_rc = tf.reverse(seq_rc, axis=[1])
+  data_ops_rc['sequence'] = seq_rc
+
+  # reverse labels
+  if 'label' in data_ops:
+    data_ops_rc['label'] = tf.reverse(data_ops['label'], axis=[1])
+
+  # reverse NA
+  if 'na' in data_ops:
+    data_ops_rc['na'] = tf.reverse(data_ops['na'], axis=[1])
+
+  return data_ops_rc
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#layer.py
 #此函数被sequence类用到，我叫他conv_block函数小集合
 def conv_block(seqs_repr, conv_params, is_training,
                batch_norm, batch_norm_momentum,
@@ -174,7 +218,7 @@ def conv_block(seqs_repr, conv_params, is_training,
 
 
 
-
+#augmentation.py
 #以下函数被sequence类用到，我叫他们augmentation函数集合
 def augment_stochastic_rc(data_ops):
   """Apply a stochastic reverse complement augmentation.
@@ -290,6 +334,71 @@ def reverse_complement_transform(data_ops):
 
   return data_ops_rc
 
+def augment_deterministic_set(data_ops, augment_rc=False, augment_shifts=[0]):
+  """
+
+  Args:
+    data_ops: dict with keys 'sequence,' 'label,' and 'na.'
+    augment_rc: Boolean
+    augment_shifts: List of ints.
+  Returns
+    data_ops_list:
+  """
+  augment_pairs = []
+  for ashift in augment_shifts:
+    augment_pairs.append((False, ashift))
+    if augment_rc:
+      augment_pairs.append((True, ashift))
+
+  data_ops_list = []
+  for arc, ashift in augment_pairs:
+    data_ops_aug = augment_deterministic(data_ops, arc, ashift)
+    data_ops_list.append(data_ops_aug)
+
+  return data_ops_list
+
+def augment_deterministic(data_ops, augment_rc=False, augment_shift=0):
+  """Apply a deterministic augmentation, specified by the parameters.
+
+  Args:
+    data_ops: dict with keys 'sequence,' 'label,' and 'na.'
+    augment_rc: Boolean
+    augment_shift: Int
+  Returns
+    data_ops: augmented data, with all existing keys transformed
+              and 'reverse_preds' bool added.
+  """
+
+  data_ops_aug = {}
+  if 'label' in data_ops:
+    data_ops_aug['label'] = data_ops['label']
+  if 'na' in data_ops:
+    data_ops_aug['na'] = data_ops['na']
+
+  if augment_shift == 0:
+    data_ops_aug['sequence'] = data_ops['sequence']
+  else:
+    shift_amount = tf.constant(augment_shift, shape=(), dtype=tf.int64)
+    data_ops_aug['sequence'] = shift_sequence(data_ops['sequence'], shift_amount)
+
+  if augment_rc:
+    data_ops_aug = augment_deterministic_rc(data_ops_aug)
+  else:
+    data_ops_aug['reverse_preds'] = tf.zeros((), dtype=tf.bool)
+
+  return data_ops_aug
+
+def augment_deterministic_rc(data_ops):
+  """Apply a deterministic reverse complement augmentation.
+
+  Args:
+    data_ops: dict with keys 'sequence,' 'label,' and 'na.'
+  Returns
+    data_ops_aug: augmented data ops
+  """
+  data_ops_aug = reverse_complement_transform(data_ops)
+  data_ops_aug['reverse_preds'] = tf.ones((), dtype=tf.bool)
+  return data_ops_aug
 
 
 
@@ -310,7 +419,7 @@ def reverse_complement_transform(data_ops):
 
 
 
-
+#params.py
 #以下小函数被params大流程用到
 def layer_extend(var, default, layers):
   """Process job input to extend for the proper number of layers."""
@@ -583,21 +692,183 @@ def add_hparams_cnn(params, job):
         params.cnn_dropout.append(job['non_dilated_cnn_dropout'])
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#batcher.py
+class Batcher:
+  """ Batcher
+
+    Class to manage batches.
+    """
+
+  def __init__(self,
+               Xf,
+               Yf=None,
+               NAf=None,
+               batch_size=64,
+               pool_width=1,
+               shuffle=False):
+    self.Xf = Xf
+    self.num_seqs = self.Xf.shape[0]
+    self.seq_len = self.Xf.shape[1]
+    self.seq_depth = self.Xf.shape[2]
+
+    self.Yf = Yf
+    if self.Yf is not None:
+      self.num_targets = self.Yf.shape[2]
+
+    self.NAf = NAf
+
+    self.batch_size = batch_size
+    self.pool_width = pool_width
+    if self.seq_len % self.pool_width != 0:
+      print(
+          'Pool width %d does not evenly divide the sequence length %d' %
+          (self.pool_width, self.seq_len),
+          file=sys.stderr)
+      exit(1)
+
+    self.shuffle = shuffle
+
+    self.reset()
+
+  def empty(self):
+    return self.start >= self.num_seqs
+
+  def remaining(self):
+    return self.num_seqs - self.start
+
+  def next(self, fwdrc=True, shift=0):
+    """ Load the next batch from the HDF5. """
+    Xb = None
+    Yb = None
+    NAb = None
+    Nb = 0
+
+    stop = self.start + self.batch_size
+    if self.start < self.num_seqs:
+      # full or partial batch
+      if stop <= self.num_seqs:
+        Nb = self.batch_size
+      else:
+        Nb = self.num_seqs - self.start
+
+      # initialize
+      Xb = np.zeros(
+          (Nb, self.seq_len, self.seq_depth), dtype='float32')
+      if self.Yf is not None:
+        if self.Yf.dtype == np.uint8:
+          ytype = 'int32'
+        else:
+          ytype = 'float32'
+
+        Yb = np.zeros(
+            (Nb, self.seq_len // self.pool_width,
+             self.num_targets),
+            dtype=ytype)
+        NAb = np.zeros(
+            (Nb, self.seq_len // self.pool_width), dtype='bool')
+
+      # copy data
+      for i in range(Nb):
+        si = self.order[self.start + i]
+        Xb[i] = self.Xf[si]
+
+        # fix N positions
+        Xbi_n = (Xb[i].sum(axis=1) == 0)
+        Xb[i] = Xb[i] + (1 / self.seq_depth) * Xbi_n.repeat(
+            self.seq_depth).reshape(self.seq_len, self.seq_depth)
+
+        if self.Yf is not None:
+          Yb[i] = np.nan_to_num(self.Yf[si])
+
+          if self.NAf is not None:
+            NAb[i] = self.NAf[si]
+
+    # reverse complement and shift
+    if Xb is not None:
+      Xb = dna_io.hot1_augment(Xb, fwdrc, shift)
+    if not fwdrc:
+      if Yb is not None:
+        Yb = Yb[:, ::-1, :]
+      if NAb is not None:
+        NAb = NAb[:, ::-1]
+
+    # update start
+    self.start = min(stop, self.num_seqs)
+
+    return Xb, Yb, NAb, Nb
+
+  def reset(self):
+    self.start = 0
+    self.order = list(range(self.num_seqs))
+    if self.shuffle:
+      random.shuffle(self.order)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         
         
-        
-        
-
-
-
-
-
-
-
-
-
-
-
+#seqnn_util.py
 class SeqNNModel(object):
   pass
 
@@ -609,7 +880,7 @@ class SeqNNModel(object):
 
 
 
-
+#seqnn.py
 class SeqNN(SeqNNModel):
 
   def __init__(self):
@@ -676,7 +947,7 @@ class SeqNN(SeqNNModel):
     # eval
 
     # eval data ops w/ deterministic augmentation
-    data_ops_eval = augmentation.augment_deterministic_set(
+    data_ops_eval = augment_deterministic_set(
         data_ops, ensemble_rc, ensemble_shifts)
     data_seq_eval = tf.stack([do['sequence'] for do in data_ops_eval])
     data_rev_eval = tf.stack([do['reverse_preds'] for do in data_ops_eval])
@@ -949,12 +1220,135 @@ class SeqNN(SeqNNModel):
 
     return loss_op, target_losses, targets
 
-    
-    
-    
-    
-    
-    
+  def build_optimizer(self, loss_op):
+    """Construct optimization op that minimizes loss_op."""
+
+    # adaptive learning rate
+    self.learning_rate_adapt = tf.train.exponential_decay(
+        learning_rate=self.hp.learning_rate,
+        global_step=self.global_step,
+        decay_steps=self.hp.learning_decay_steps,
+        decay_rate=self.hp.learning_decay_rate,
+        staircase=True)
+    tf.summary.scalar('learning_rate', self.learning_rate_adapt)
+
+    if self.hp.optimizer == 'adam':
+      self.opt = tf.train.AdamOptimizer(
+          learning_rate=self.learning_rate_adapt,
+          beta1=self.hp.adam_beta1,
+          beta2=self.hp.adam_beta2,
+          epsilon=self.hp.adam_eps)
+
+    elif self.hp.optimizer == 'nadam':
+      self.opt = tf.contrib.opt.NadamOptimizer(
+          learning_rate=self.learning_rate_adapt,
+          beta1=self.hp.adam_beta1,
+          beta2=self.hp.adam_beta2,
+          epsilon=self.hp.adam_eps)
+
+    elif self.hp.optimizer in ['sgd', 'momentum']:
+      self.opt = tf.train.MomentumOptimizer(
+          learning_rate=self.learning_rate_adapt,
+          momentum=self.hp.momentum)
+    else:
+      print('Cannot recognize optimization algorithm %s' % self.hp.optimizer)
+      exit(1)
+
+    # compute gradients
+    self.gvs = self.opt.compute_gradients(
+        loss_op,
+        aggregation_method=tf.AggregationMethod.EXPERIMENTAL_ACCUMULATE_N)
+
+    # clip gradients
+    if self.hp.grad_clip is not None:
+      gradients, variables = zip(*self.gvs)
+      gradients, _ = tf.clip_by_global_norm(gradients, self.hp.grad_clip)
+      self.gvs = zip(gradients, variables)
+
+    # apply gradients
+    self.step_op = self.opt.apply_gradients(
+        self.gvs, global_step=self.global_step)
+
+    # summary
+    self.merged_summary = tf.summary.merge_all()
+
+  def train_epoch_h5(self,
+                     sess,
+                     batcher,
+                     sum_writer=None,
+                     epoch_batches=None,
+                     no_steps=False):
+    """Execute one training epoch using HDF5 data,
+       and compute-graph augmentation"""
+
+    # initialize training loss
+    train_loss = []
+    batch_sizes = []
+    global_step = 0
+
+    # setup feed dict
+    fd = self.set_mode('train')
+
+    # get first batch
+    Xb, Yb, NAb, Nb = batcher.next()
+
+    batch_num = 0
+    while Xb is not None and (epoch_batches is None or batch_num < epoch_batches):
+      # update feed dict
+      fd[self.inputs_ph] = Xb
+      fd[self.targets_ph] = Yb
+
+      if no_steps:
+        run_returns = sess.run([self.merged_summary, self.loss_train] + \
+                                self.update_ops, feed_dict=fd)
+        summary, loss_batch = run_returns[:2]
+      else:
+        run_ops = [self.merged_summary, self.loss_train, self.global_step, self.step_op]
+        run_ops += self.update_ops
+        summary, loss_batch, global_step = sess.run(run_ops, feed_dict=fd)[:3]
+
+      # add summary
+      if sum_writer is not None:
+        sum_writer.add_summary(summary, global_step)
+
+      # accumulate loss
+      train_loss.append(loss_batch)
+      batch_sizes.append(Nb)
+
+      # next batch
+      Xb, Yb, NAb, Nb = batcher.next()
+      batch_num += 1
+
+    # reset training batcher if epoch considered all of the data
+    if epoch_batches is None:
+      batcher.reset()
+
+    avg_loss = np.average(train_loss, weights=batch_sizes)
+
+    return avg_loss, global_step
+
+  def set_mode(self, mode):
+    """ Construct a feed dictionary to specify the model's mode. """
+    fd = {}
+
+    if mode in ['train', 'training']:
+      fd[self.is_training] = True
+
+    elif mode in ['test', 'testing', 'evaluate']:
+      fd[self.is_training] = False
+
+    elif mode in [
+        'test_mc', 'testing_mc', 'evaluate_mc', 'mc_test', 'mc_testing',
+        'mc_evaluate'
+    ]:
+      fd[self.is_training] = False
+
+    else:
+      print('Cannot recognize mode %s' % mode)
+      exit(1)
+
+    return fd
+
     
     
     
@@ -964,6 +1358,38 @@ class SeqNN(SeqNNModel):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
+    
+    
+
+
+
+
+#basenji_train_h5.py
 def run(params_file, data_file, train_epochs, train_epoch_batches, test_epoch_batches):
 
   #######################################################
@@ -1025,14 +1451,14 @@ def run(params_file, data_file, train_epochs, train_epoch_batches, test_epoch_ba
                                      valid_targets_imag, valid_na,
                                      model.batch_size, model.target_pool)
   else:
-    batcher_train = batcher.Batcher(
+    batcher_train = Batcher(
         train_seqs,
         train_targets,
         train_na,
         model.hp.batch_size,
         model.hp.target_pool,
         shuffle=True)
-    batcher_valid = batcher.Batcher(valid_seqs, valid_targets, valid_na,
+    batcher_valid = Batcher(valid_seqs, valid_targets, valid_na,
                                     model.hp.batch_size, model.hp.target_pool)
   print('Batcher initialized')
 
