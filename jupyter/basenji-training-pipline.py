@@ -8,7 +8,8 @@ import random
 import h5py
 import numpy as np
 import tensorflow as tf
-
+import scipy.stats as stats
+import sklearn.metrics as metrics
 
 
 
@@ -53,6 +54,84 @@ tf.flags.DEFINE_string('restart', None, 'Restart training the model')
 tf.flags.DEFINE_integer('early_stop', 25, 'Stop training if validation loss stagnates.')
 
 FLAGS = tf.app.flags.FLAGS
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#accuracy.py
+class Accuracy:
+
+  def __init__(self,
+               targets,
+               preds,
+               targets_na=None,
+               loss=None,
+               target_losses=None):
+    self.targets = targets
+    self.preds = preds
+    self.targets_na = targets_na
+    self.loss = loss
+    self.target_losses = target_losses
+
+    self.num_targets = self.targets.shape[-1]
+
+  def r2(self, log=False, pseudocount=1, clip=None):
+    """ Compute target R2 vector. """
+    r2_vec = np.zeros(self.num_targets)
+
+    for ti in range(self.num_targets):
+      if self.targets_na is not None:
+        preds_ti = self.preds[~self.targets_na, ti].astype('float64')
+        targets_ti = self.targets[~self.targets_na, ti].astype('float64')
+      else:
+        preds_ti = self.preds[:, :, ti].flatten().astype('float64')
+        targets_ti = self.targets[:, :, ti].flatten().astype('float64')
+
+      if clip is not None:
+        preds_ti = np.clip(preds_ti, 0, clip)
+        targets_ti = np.clip(targets_ti, 0, clip)
+
+      if log:
+        preds_ti = np.log2(preds_ti + pseudocount)
+        targets_ti = np.log2(targets_ti + pseudocount)
+
+      r2_vec[ti] = metrics.r2_score(targets_ti, preds_ti)
+
+    return r2_vec
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -707,6 +786,72 @@ def add_hparams_cnn(params, job):
 
 
 
+#dna_io.py
+def hot1_augment(Xb, fwdrc, shift):
+  """ Transform a batch of one hot coded sequences to augment training.
+
+    Args:
+      Xb:     Batch x Length x 4 array
+      fwdrc:  Boolean representing forward versus reverse complement strand.
+      shift:  Integer shift
+
+    Returns:
+      Xbt:    Transformed version of Xb
+    """
+
+  if Xb.dtype == bool:
+    nval = 0
+  else:
+    nval = 1. / Xb.shape[2]
+
+  if shift == 0:
+    Xbt = Xb
+
+  elif shift > 0:
+    Xbt = np.zeros(Xb.shape)
+
+    # fill in left unknowns
+    Xbt[:, :shift, :] = nval
+
+    # fill in sequence
+    Xbt[:, shift:, :] = Xb[:, :-shift, :]
+    # e.g.
+    # Xbt[:,1:,] = Xb[:,:-1,:]
+
+  elif shift < 0:
+    Xbt = np.zeros(Xb.shape)
+
+    # fill in right unknowns
+    Xbt[:, shift:, :] = nval
+
+    # fill in sequence
+    Xbt[:, :shift, :] = Xb[:, -shift:, :]
+    # e.g.
+    # Xb_shift[:,:-1,:] = Xb[:,1:,:]
+
+  if not fwdrc:
+    Xbt = hot1_rc(Xbt)
+
+  return Xbt
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -803,7 +948,7 @@ class Batcher:
 
     # reverse complement and shift
     if Xb is not None:
-      Xb = dna_io.hot1_augment(Xb, fwdrc, shift)
+      Xb = hot1_augment(Xb, fwdrc, shift)
     if not fwdrc:
       if Yb is not None:
         Yb = Yb[:, ::-1, :]
@@ -870,7 +1015,85 @@ class Batcher:
         
 #seqnn_util.py
 class SeqNNModel(object):
-  pass
+
+  def test_h5(self, sess, batcher, test_batches=None):
+    """ Compute model accuracy on a test set.
+
+        Args:
+          sess:         TensorFlow session
+          batcher:      Batcher object to provide data
+          test_batches: Number of test batches
+
+        Returns:
+          acc:          Accuracy object
+        """
+    # setup feed dict
+    fd = self.set_mode('test')
+
+    # initialize prediction and target arrays
+    preds = []
+    targets = []
+    targets_na = []
+
+    batch_losses = []
+    batch_target_losses = []
+    batch_sizes = []
+
+    # get first batch
+    batch_num = 0
+    Xb, Yb, NAb, Nb = batcher.next()
+
+    while Xb is not None and (test_batches is None or
+                              batch_num < test_batches):
+      # update feed dict
+      fd[self.inputs_ph] = Xb
+      fd[self.targets_ph] = Yb
+
+      # make predictions
+      run_ops = [self.targets_eval, self.preds_eval,
+                 self.loss_eval, self.loss_eval_targets]
+      run_returns = sess.run(run_ops, feed_dict=fd)
+      targets_batch, preds_batch, loss_batch, target_losses_batch = run_returns
+
+      # accumulate predictions and targets
+      preds.append(preds_batch[:Nb,:,:].astype('float16'))
+      targets.append(targets_batch[:Nb,:,:].astype('float16'))
+      targets_na.append(np.zeros([Nb, self.preds_length], dtype='bool'))
+
+      # accumulate loss
+      batch_losses.append(loss_batch)
+      batch_target_losses.append(target_losses_batch)
+      batch_sizes.append(Nb)
+
+      # next batch
+      batch_num += 1
+      Xb, Yb, NAb, Nb = batcher.next()
+
+    # reset batcher
+    batcher.reset()
+
+    # construct arrays
+    targets = np.concatenate(targets, axis=0)
+    preds = np.concatenate(preds, axis=0)
+    targets_na = np.concatenate(targets_na, axis=0)
+
+    # mean across batches
+    batch_losses = np.array(batch_losses, dtype='float64')
+    batch_losses = np.average(batch_losses, weights=batch_sizes)
+    batch_target_losses = np.array(batch_target_losses, dtype='float64')
+    batch_target_losses = np.average(batch_target_losses, axis=0, weights=batch_sizes)
+
+    # instantiate accuracy object
+    acc = Accuracy(targets, preds, targets_na,
+                            batch_losses, batch_target_losses)
+
+    return acc
+
+
+
+
+
+
 
 
 
