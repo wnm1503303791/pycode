@@ -4,7 +4,4 @@ env/
 __pycache__
 *.pyc
 .ipynb_checkpoints
-<<<<<<< HEAD
 *.whl
-=======
->>>>>>> 23aa682939a95a4a9dd03dc7c1df5923b012f5fd
