@@ -1,0 +1,20 @@
+#PBS -N preprocess
+#PBS -l nodes=1:ppn=2
+#PBS -l mem=2G
+#PBS -l walltime=01:00:00
+#PBS -q batch 
+#PBS -V  
+#PBS -m a -M wnm1503303791@gmail.com
+#PBS -o /home/tuzhuo/code/git/basenji/tutorials/r
+#PBS -e /home/tuzhuo/code/git/basenji/tutorials/r
+
+cd /home/tuzhuo/code/git/basenji/tutorials
+source activate basenji_env1
+
+python ../bin/basenji_data.py -d .1 -g data/unmap_macro.bed -l 131072 --local -o data/heart_l131k -p 8 -t .1 -v .1 -w 128 data/hg19.ml.fa data/heart_wigs.txt
+
+cut -f4 data/heart_l131k/sequences.bed | sort | uniq -c
+head -n3 data/heart_l131k/sequences.bed
+grep valid data/heart_l131k/sequences.bed | head -n3
+grep test data/heart_l131k/sequences.bed | head -n3
+ls -l data/heart_l131k/tfrecords/*.tfr

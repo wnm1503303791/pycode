@@ -1,0 +1,13 @@
+#PBS -N deeperdeepsea
+#PBS -l nodes=1:ppn=2
+#PBS -l mem=3G
+#PBS -l walltime=7200:00:00
+#PBS -q batch 
+#PBS -V  
+#PBS -m a -M wnm1503303791@gmail.com
+#PBS -o /home/tuzhuo/code/git/basenji/tutorials/r
+#PBS -e /home/tuzhuo/code/git/basenji/tutorials/r
+
+cd /home/tuzhuo/code/git/basenji/tutorials
+source activate basenji_env1
+python ../bin/basenji_train.py --augment_rc --ensemble_rc --augment_shifts "1,0,-1" --logdir models/heart --params models/params_small.txt --train_data data/heart_l131k/tfrecords/train*.tfr --test_data data/heart_l131k/tfrecords/valid*.tfr

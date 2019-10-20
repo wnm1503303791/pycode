@@ -1,0 +1,11 @@
+#PBS -N fr_train_model
+#PBS -l nodes=1:ppn=2
+#PBS -l mem=1G
+#PBS -l walltime=01:00:00
+#PBS -q batch 
+#PBS -V  
+
+cd /home/tuzhuo/code/git/pycode/fr
+source activate tensorflow_env1
+python train_model.py
+python test_model.py
