@@ -1,4 +1,4 @@
-# python练习代码库
+# python practice code
 
 <img src="logo.jpg" width="260">
 
@@ -11,11 +11,11 @@ used to learn **python / machine-learning / deep-learning**
 ## 现有库
 
 1. **data**
-2. **fr**：人脸识别
-3. [**jupyter**](jupyter/)：存放jupyter notebook代码文件
-4. **nn**：《深度学习入门：基于Python的理论与实现》随书源代码
-5. **rs**：推荐系统（用python重写毕业设计的计算部分）
-6. **others**：其余类别代码
-7. [**neural-style-tz**](neural-style-tz/)：基于卷积神经网络的图片风格转换（需使用GPU进行运算，测试显卡：NVIDIA Tesla P100 PCIe 16GB）
-8. **Keras-GAN**：基于Keras的生成对抗网络应用（需使用GPU进行运算，测试显卡：NVIDIA GeForce RTX 2070）
-9. [**gluoncv**](gluoncv/)：计算机视觉库（applied with pre-trained models and written in jupyter notebook）
+2. **fr**：facial recognition
+3. [**jupyter**](jupyter/)：save jupyter notebook files
+4. **nn**：source code of book **_Deep Learning from Scratch_**
+5. **rs**：recommended system（calculated using python instead of c++）
+6. **others**：just others kinds of codes
+7. [**neural-style-tz**](neural-style-tz/)：realization of **_A Neural Algorithm of Artistic Style_**（test GPU：NVIDIA Tesla P100 PCIe 16GB）
+8. **Keras-GAN**：application of GAN using Keras（test GPU：NVIDIA GeForce RTX 2070）
+9. [**gluoncv**](gluoncv/)：computer vision（applied with pre-trained models and written in jupyter notebook）
