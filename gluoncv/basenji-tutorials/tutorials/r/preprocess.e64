@@ -1,0 +1,11 @@
+basenji_data_read.py -w 128 -u sum -c 384.000000 -s 1.000000 data/CNhs11760.bw data/heart_l131k/sequences.bed data/heart_l131k/seqs_cov/0.h5 &> data/heart_l131k/seqs_cov/0.err
+basenji_data_read.py -w 128 -u sum -c 384.000000 -s 1.000000 data/CNhs12843.bw data/heart_l131k/sequences.bed data/heart_l131k/seqs_cov/1.h5 &> data/heart_l131k/seqs_cov/1.err
+basenji_data_read.py -w 128 -u sum -c 384.000000 -s 1.000000 data/CNhs12856.bw data/heart_l131k/sequences.bed data/heart_l131k/seqs_cov/2.h5 &> data/heart_l131k/seqs_cov/2.err
+basenji_data_write.py -s 0 -e 256 data/hg19.ml.fa data/heart_l131k/sequences.bed data/heart_l131k/seqs_cov data/heart_l131k/tfrecords/train-0.tfr &> data/heart_l131k/tfrecords/train-0.err
+basenji_data_write.py -s 256 -e 512 data/hg19.ml.fa data/heart_l131k/sequences.bed data/heart_l131k/seqs_cov data/heart_l131k/tfrecords/train-1.tfr &> data/heart_l131k/tfrecords/train-1.err
+basenji_data_write.py -s 512 -e 768 data/hg19.ml.fa data/heart_l131k/sequences.bed data/heart_l131k/seqs_cov data/heart_l131k/tfrecords/train-2.tfr &> data/heart_l131k/tfrecords/train-2.err
+basenji_data_write.py -s 768 -e 1024 data/hg19.ml.fa data/heart_l131k/sequences.bed data/heart_l131k/seqs_cov data/heart_l131k/tfrecords/train-3.tfr &> data/heart_l131k/tfrecords/train-3.err
+basenji_data_write.py -s 1024 -e 1280 data/hg19.ml.fa data/heart_l131k/sequences.bed data/heart_l131k/seqs_cov data/heart_l131k/tfrecords/train-4.tfr &> data/heart_l131k/tfrecords/train-4.err
+basenji_data_write.py -s 1280 -e 1499 data/hg19.ml.fa data/heart_l131k/sequences.bed data/heart_l131k/seqs_cov data/heart_l131k/tfrecords/train-5.tfr &> data/heart_l131k/tfrecords/train-5.err
+basenji_data_write.py -s 1499 -e 1679 data/hg19.ml.fa data/heart_l131k/sequences.bed data/heart_l131k/seqs_cov data/heart_l131k/tfrecords/valid-0.tfr &> data/heart_l131k/tfrecords/valid-0.err
+basenji_data_write.py -s 1679 -e 1858 data/hg19.ml.fa data/heart_l131k/sequences.bed data/heart_l131k/seqs_cov data/heart_l131k/tfrecords/test-0.tfr &> data/heart_l131k/tfrecords/test-0.err
