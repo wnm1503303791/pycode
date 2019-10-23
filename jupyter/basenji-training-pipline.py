@@ -1012,7 +1012,7 @@ class Batcher:
 
 
         
-        
+#在训练过程中class SeqNNModel不存在实例对象，而仅仅是作为class SeqNN的一个父类。在训练过程中，test_h5函数本质上可以归并到class SeqNN当中
 #seqnn_util.py
 class SeqNNModel(object):
 
