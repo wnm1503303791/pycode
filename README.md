@@ -8,7 +8,7 @@ first initiated @ 2019/8/2
 
 used to learn **python / machine-learning / deep-learning**
 
-## 现有库
+## Current Libraries
 
 1. **data**
 2. **fr**：facial recognition
