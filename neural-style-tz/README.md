@@ -1,10 +1,10 @@
-<img src="content/nju-cs-1.jpg" width="420">
-<img src="style/1.jpg" width="420">
-<img src="result/result-nju-cs-1.jpg" width="420">
-
 # Neural-Style-TZ
 
 Last modified @ 2019/11/19
+
+<img src="content/nju-cs-1.jpg" width="420">
+<img src="style/1.jpg" width="420">
+<img src="result/result-nju-cs-1.jpg" width="420">
 
 ## contibutor
 tuzhuo @ croplab, HZAU
