@@ -1,3 +1,4 @@
+<img src="content/nju-cs-1.jpg" width="420">
 <img src="result/result-nju-cs-1.jpg" width="420">
 
 # Neural-Style-TZ
