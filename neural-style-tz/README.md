@@ -3,8 +3,8 @@
 Last modified @ 2019/11/19
 
 <img src="content/nju-1.jpg" width="420">
-<img src="style/1.jpg" width="420">
-<img src="result/result-nju-1.jpg" width="420">
+<img src="style/14.jpg" width="420">
+<img src="result/result-nju-14.jpg" width="420">
 
 ## contributor
 tuzhuo @ croplab, HZAU
