@@ -1,0 +1,6 @@
+2 GPUs are detected.
+device1: /device:GPU:0
+device2: /device:GPU:1
+Start a session
+2 GPUs computation time: 0:00:22.545395
+calculating size is : 10000
