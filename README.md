@@ -4,7 +4,7 @@
 
 first initiated @ **2019/8/2**
 
-## author:tuzhuo@croplab,HZAU
+## author : tuzhuo @ croplab, HZAU
 
 used to learn **python / machine-learning / deep-learning**
 
